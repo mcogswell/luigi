@@ -75,7 +75,7 @@ class Parameter(object):
     """non-atomically increasing counter used for ordering parameters."""
 
     def __init__(self, default=_no_value, is_list=False, is_boolean=False, is_global=False, significant=True, description=None,
-                 config_path=None, default_from_config=None):
+                 config_path=None, default_from_config=None, implicit_val=None):
         """
         :param default: the default value for this parameter. This should match the type of the
                         Parameter, i.e. ``datetime.date`` for ``DateParameter`` or ``int`` for
@@ -100,6 +100,11 @@ class Parameter(object):
                                  specifying a config file entry from which to read the
                                  default value for this parameter.
                                  Default: ``None``.
+        :param implicit_val: If the parameter resolves to this value then it will not be considered
+                             in hashing functions. This allows parameters to be added without
+                             changing the hash of things that might have taken a long time
+                             to compute. In some sense this Parameter has always existed,
+                             but it has always taken ``implicit_val`` up to this point.
         """
         # The default default is no default
         self.__default = default
@@ -109,6 +114,7 @@ class Parameter(object):
         self.is_boolean = is_boolean and not is_list  # Only BooleanParameter should ever use this. TODO(erikbern): should we raise some kind of exception?
         self.is_global = is_global  # It just means that the default value is exposed and you can override it
         self.significant = significant # Whether different values for this parameter will differentiate otherwise equal tasks
+        self.implicit_val = implicit_val
 
         if default_from_config is not None:
             warnings.warn("Use config_path parameter, not default_from_config", DeprecationWarning)
